@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-
+import os
 from setuptools import setup
 
 with open('README.rst') as readme_file:
@@ -9,10 +9,7 @@ with open('README.rst') as readme_file:
 with open('HISTORY.rst') as history_file:
     history = history_file.read()
 
-requirements = [
-    'Click>=6.0',
-    # TODO: put package requirements here
-]
+requirements = []
 
 test_requirements = [
     # TODO: put package test requirements here
