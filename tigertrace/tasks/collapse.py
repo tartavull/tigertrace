@@ -3,7 +3,7 @@ from tigertrace.tasks.evaluate import Evaluate
 from tigertrace.features import Tree, Neighbors
 
 class Collapse(Agglomeration):
-  def __init__(self, id_1, id_2, sampler):
+  def __init__(self, id_1, id_2, sampler=None):
     assert id_1 < id_2
     self.id_1 = id_1
     self.id_2 = id_2
@@ -22,6 +22,7 @@ class Collapse(Agglomeration):
     store.delete_node(self.id_2)
     store.delete_edge(self.id_1, self.id_2)
 
+    store.log.append((self.edge['weight'] , self.edge['soft_label']))
   def run(self):
     self.compute_affected()
     self.create_new_node()

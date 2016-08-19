@@ -68,7 +68,7 @@ class Construct(Agglomeration):
         y + self.chunk_overlap[1] < self.ml.shape[1] and
         x + self.chunk_overlap[2] < self.ml.shape[2]):
       self.nodes[ml_id]['pos'].append( np.array([z,y,x]) )
-      if 'soft_label' in self.nodes_features:
+      if 'soft_label' in self.nodes_features and self.hl[z,y,x] != 0:
         self.nodes[ml_id]['soft_label'][self.hl[z,y,x]] += 1
       if 'semantic_sum' in self.nodes_features:
         self.nodes[ml_id]['semantic_sum'] += np.array(self.sl[:,z,y,x])

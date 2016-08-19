@@ -55,7 +55,7 @@ class Train(Task):
 	def train_tree(self):
 		self.x = np.array(self.x)
 		self.y = np.array(self.y)
-		self.clf = tree.DecisionTreeClassifier(max_depth=4, min_samples_split=len(self.x) / 8,criterion='entropy', class_weight=None)
+		self.clf = tree.DecisionTreeClassifier(min_samples_split=len(self.x) / 4,criterion='entropy', class_weight='balanced')
 		# self.clf = RandomForestClassifier(min_samples_split=len(self.x) / 8, class_weight='balanced')
 		# with open(self.model_path, 'rb') as f:
 		# 	self.clf = pickle.load(f)
@@ -135,6 +135,6 @@ class Train(Task):
 	def save(self, store, queue):
 		self.save_scatters_png(store)
 		self.save_tree_png(store)
-		# with open(store.dataset_path + '/model.p', 'wb') as f:
-		# 	pickle.dump(self.clf, f)
+		with open(store.dataset_path + '/model.p', 'wb') as f:
+			pickle.dump(self.clf, f)
 		

@@ -17,7 +17,7 @@ class Store(object):
     self.delete = delete
     self.latest_id = 0
     self.db = self._init_db()
-
+    self.log = []
 
     #count merges
     self.merges_count = 0
@@ -131,6 +131,10 @@ class Store(object):
     with open('{}/triplets/{:06d}.p'.format(self.dataset_path,self.batch),'wb') as f:
         logging.debug('saving to disk')
         pickle.dump(self.ops,f)
+
+    with open('{}/log.p'.format(self.dataset_path),'wb') as f:
+      pickle.dump(self.log,f)
+
 
     if self.delete:
       self._drop_db()

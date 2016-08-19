@@ -109,8 +109,12 @@ class Evaluate(Agglomeration):
 
   def compute_weight(self, features):
     if self.oracle:
-      return features['soft_label']
+      if features['soft_label'] >= 0.9:
+        return features['mean_affinity']
+      else:
+        return 0.0
     else:
+      return features['soft_label']
       return self.classify(features)
 
   def find_points_inside_box(self, positions, bbox_min, bbox_max, shape ):
@@ -145,10 +149,11 @@ class Evaluate(Agglomeration):
 
     return node_1_arr, node_2_arr
 
-  # @profile
   def save(self, store, queue):
     if self.oracle:
       store.log_operation(self.id_1, self.id_2, self.features)
+
+    self.edge['soft_label'] = self.features['soft_label']
     store.put_edge(self.id_1, self.id_2, self.edge)
     if self.edge['weight'] > self.collapse_threshold:
       queue.submit_new_task('Collapse', (self.id_1, self.id_2), priority=self.edge['weight'])
