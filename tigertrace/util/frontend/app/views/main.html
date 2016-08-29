@@ -1,0 +1,31 @@
+<div layout="column" class="fullscreen" ng-cloak>
+  <div style="position:absolute; top:0; right:0; z-index:2">
+      <md-button  ng-click="toggleRight()"
+        class="md-icon-button"
+        hide-gt-md>
+        <i class="material-icons">apps</i>
+      </md-button>
+  </div>
+  <div style="position:absolute; top:0; left:0; z-index:2">
+          <md-button ng-click="toggleLeft()"
+            ng-hide="isOpenLeft()"
+            class="md-icon-button"
+            >
+            <i class="material-icons">menu</i>
+          </md-button>
+  </div>
+
+  <section layout="row" flex>
+    <div ui-view="left"></div> 
+  
+    <md-content flex="grow" layout-padding>
+      <div layout="column" layout-fill layout-align="center center">
+      </div>
+    </md-content>
+
+    <div ui-view="right" layout="column"></div> 
+
+  </section>
+</div>
+<div id="webGLContainer" class="fullscreen"></div>
+<canvas id="overlay" class="fullscreen"></canvas>
