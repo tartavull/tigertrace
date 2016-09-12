@@ -6,7 +6,6 @@ from time import sleep
 from tigertrace.tasks import tasks_dict, Agglomeration
 from tigertrace.tasks.construct import Construct
 from tigertrace.tasks.evaluate import Evaluate
-from tigertrace.tasks.train import classifier
 
 #Pickling magic for class methods from
 #https://bytes.com/topic/python/answers/552476-why-cant-you-pickle-instancemethods
@@ -49,14 +48,12 @@ class Worker(object):
     the changes to the queue and store are applied to the queue and the store of the 
     parent process.
     """
-    def __init__(self, store, queue, just_build=False, oracle=False):
+    def __init__(self, store, queue, classifier, just_build=False, oracle=False):
         
 
         self.just_build = just_build
         self.oracle = oracle
-        self.classify =  None
-        if not self.oracle:  
-            self.classify = classifier(store.dataset_path)
+        self.classifier = classifier
         self.store = store
         self.queue = queue
         self.sampler = 1#Sampler()
@@ -87,7 +84,7 @@ class Worker(object):
             args = task_args+ (self.sampler,)
             task = tasks_dict[task_name](*args)
             task.oracle = self.oracle
-            task.classify = self.classify
+            task.classifier = self.classifier
             task.fetch(self.store, self.queue)
             if task.async:
                 if self.running_tasks >= self.processes:

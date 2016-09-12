@@ -58,8 +58,8 @@ angular
           $urlRouterProvider.otherwise('/');
   }])
   .value('globals', {
-    CHUNK_SIZE: new THREE.Vector3(64,64,64),
-    CUBE_SIZE: new THREE.Vector3(256,256,64),
+    CHUNK_SIZE: new THREE.Vector3(2128,2128,1),
+    CUBE_SIZE: new THREE.Vector3(2128,2128,64),
     HOSTNAME: 'http://localhost',
     dataset: 'small_piriform'
   });

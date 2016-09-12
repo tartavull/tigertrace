@@ -26,7 +26,8 @@ class Evaluate(Agglomeration):
   
   def run(self):
     self.features = self.compute_features()
-    self.edge['weight'] = self.compute_weight(self.features)
+    self.edge['weight'] = self.classifier.pred(self.features)
+    
   def add_soft_label(self, features):
     
     features['soft_label'] =  SoftLabel.triplet_feature(
@@ -81,6 +82,8 @@ class Evaluate(Agglomeration):
 
   def add_semantic(self, features):
     features['semantic_sum'] = np.sum(self.node_1['semantic_sum'] * self.node_2['semantic_sum'] / (self.node_1['size'] * self.node_2['size']))
+    features['semantic_1'] = self.node_1['semantic_sum']
+    features['semantic_2'] = self.node_2['semantic_sum']
 
   def compute_features(self):
     
@@ -108,15 +111,7 @@ class Evaluate(Agglomeration):
     return features
 
   def compute_weight(self, features):
-    if self.oracle:
-      if features['soft_label'] >= 0.9:
-        return features['mean_affinity']
-      else:
-        return 0.0
-    else:
-      return features['soft_label']
-      return self.classify(features)
-
+    return 
   def find_points_inside_box(self, positions, bbox_min, bbox_max, shape ):
     arr = np.zeros(shape=shape)
     for pos in positions:
@@ -153,7 +148,8 @@ class Evaluate(Agglomeration):
     if self.oracle:
       store.log_operation(self.id_1, self.id_2, self.features)
 
-    self.edge['soft_label'] = self.features['soft_label']
+    self.edge['features'] = self.features
     store.put_edge(self.id_1, self.id_2, self.edge)
     if self.edge['weight'] > self.collapse_threshold:
+      #some of this merges might get canceled later if some region involes gets merge first
       queue.submit_new_task('Collapse', (self.id_1, self.id_2), priority=self.edge['weight'])

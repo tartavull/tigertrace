@@ -218,14 +218,10 @@ angular.module('cubeApp')
       if (animating) {
         return;
       }
-
       centerPoint.copy(point);
-
       animating = true;
       srv.isZoomed = zoomLevel !== 1;
-
       var duration = 500;
-
       new TWEEN.Tween(meshService).to({ opacity: 0.8 }, duration)
       .onUpdate(function () {
         srv.needsRender = true;
@@ -237,7 +233,6 @@ angular.module('cubeApp')
         .onUpdate(function () {
           srv.needsRender = true;
         }).start();
-
 
       new TWEEN.Tween(srv.camera).to({viewHeight: 2/zoomLevel}, duration)
         .easing(TWEEN.Easing.Sinusoidal.InOut).onUpdate(function () {
@@ -288,8 +283,6 @@ angular.module('cubeApp')
         srv.rotateStart.copy( getMouseProjectionOnBall( event.pageX, event.pageY ) );
         srv.rotateEnd.copy( srv.rotateStart );
       }
-
-     
 
       document.addEventListener( 'mousemove', mousemove, false );
       document.addEventListener( 'mouseup', mouseup, false );

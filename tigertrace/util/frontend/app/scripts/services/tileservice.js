@@ -177,23 +177,37 @@ angular.module('cubeApp')
 
     srv.draw = function () {
 
-      if (!srv.isComplete(srv.currentTileIdx)) {
-        return;
-      }
+      // if (!srv.isComplete(srv.currentTileIdx)) {
+      //   return;
+      // }
 
-      var tile = srv.currentTile();
+      // $http({
+      //   method: 'GET',
+      //   url: globals.HOSTNAME + ':8888/images/'+srv.currentTileIdx,
+      //   'Accept': "image/png"
+      // }).then(function successCallback(response) {
+      //   console.log(response)
+      // });
 
-      for (var x=0; x < globals.CUBE_SIZE.x / globals.CHUNK_SIZE.x; ++x) {
-        for (var y=0; y < globals.CUBE_SIZE.y / globals.CHUNK_SIZE.y; ++y) {
-          srv.stagingContext.drawImage(tile.channel[[x,y]], x * globals.CHUNK_SIZE.x, y * globals.CHUNK_SIZE.y);
-          srv.segContext.drawImage(tile.segmentation[[x,y]], x * globals.CHUNK_SIZE.x, y * globals.CHUNK_SIZE.y);
-        }
+      var img = new Image();
+      img.crossOrigin = "anonymous";
+      img.onload = function() {
+        srv.stagingContext.drawImage(img,0,0);
+        console.log('img loaded')
+        srv.planes.z.material.materials[5].map.needsUpdate = true; //What are the other materials for?
       }
-      
+      var seg = new Image();
+      seg.crossOrigin = "anonymous";
+      seg.onload = function() {
+        console.log('segmentation loaded')
+        srv.segContext.drawImage(seg,0,0);
+        srv.planes.z.material.materials[5].map.needsUpdate = true; //What are the other materials for?
+        highlight();
+      };
+      img.src = globals.HOSTNAME + ':8888/images/'+srv.currentTileIdx
+      seg.src = globals.HOSTNAME + ':8888/segmentation/'+srv.currentTileIdx
       highlight();
-      
-      srv.planes.z.material.materials[5].map.needsUpdate = true; //What are the other materials for?
-    };
+     };
 
   
     // highlight the seeds and selected segments in the tile 2d view
@@ -210,14 +224,14 @@ angular.module('cubeApp')
       var channelImageData = srv.stagingContext.getImageData(0, 0, globals.CUBE_SIZE.x, globals.CUBE_SIZE.y);
       var channelPixels = channelImageData.data;
 
-      var segment_ids = [];
-      var colors = [];
+      var segment_ids = [6447714];
+      var colors = [0];
 
-      //A segment is composed of many meshes(one per chunk)
-      meshService.meshes.children.forEach(function (segment) {
-        colors.push(segment.material.uniforms.color.value);
-        segment_ids.push(segment.segment_id);
-      });
+      // //A segment is composed of many meshes(one per chunk)
+      // meshService.meshes.children.forEach(function (segment) {
+      //   colors.push(segment.material.uniforms.color.value);
+      //   segment_ids.push(segment.segment_id);
+      // });
 
 
 
@@ -252,6 +266,7 @@ angular.module('cubeApp')
     // returns the the segment id located at the given x y position of this tile
     srv.segIdForPosition = function(x, y) {
       var segPixels = srv.segContext.getImageData(0, 0, globals.CUBE_SIZE.x, globals.CUBE_SIZE.y).data;
+      console.log(segPixels)
       // var data = //this.segmentation[chunkY * 2 + chunkX].data;
       var start = (y * globals.CUBE_SIZE.y + x) * 4;
       var rgb = [segPixels[start], segPixels[start+1], segPixels[start+2]];

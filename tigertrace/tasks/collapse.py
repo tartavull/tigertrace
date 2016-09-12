@@ -17,12 +17,13 @@ class Collapse(Agglomeration):
     self.edge = store.get_edge(self.id_1, self.id_2)
     self.new_id = store.get_new_id()
 
+    store.log.append(self.edge['features'])
+
     #Remove them, because we will update them
     store.delete_node(self.id_1)
     store.delete_node(self.id_2)
     store.delete_edge(self.id_1, self.id_2)
 
-    store.log.append((self.edge['weight'] , self.edge['soft_label']))
   def run(self):
     self.compute_affected()
     self.create_new_node()

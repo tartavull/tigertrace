@@ -78,11 +78,6 @@ angular.module('cubeApp')
       var light = new THREE.DirectionalLight(0xffffff);
       light.position.copy(srv.camera.realCamera.position);
       srv.scene.add(light);
-
-
-      var wireframe = new THREE.BoxHelper(srv.cube);
-      wireframe.material.color.set("#000000");
-      srv.pivot.add(wireframe);
     };
 
     srv.resize = function() {
@@ -90,7 +85,6 @@ angular.module('cubeApp')
       srv.camera.realCamera.updateProjectionMatrix();
       srv.renderer.setSize($window.innerWidth, $window.innerHeight);
       srv.needsRender = true;
-      // ThreeDView.setSize(window.innerWidth, window.innerHeight);
     };
 
     function init() {
@@ -112,8 +106,6 @@ angular.module('cubeApp')
       webGLContainer.appendChild(srv.renderer.domElement);
 
       srv.camera = srv.create_camera(40, 0.1, 2);
-      window.camera = srv.camera
-
 
       srv.scene.add(srv.camera.realCamera);
    

@@ -8,18 +8,22 @@ from tigertrace.tasks.task import Task, Agglomeration
 from sklearn import tree
 from sklearn.ensemble import RandomForestClassifier
 from tqdm import tqdm
+import h5py
 
 def classifier(dataset_path):
-	t = Train()
-	with open(dataset_path + '/model.p', 'rb') as f:
-		clf = pickle.load(f)
+	# t = Train()
+	# with open(dataset_path + '/model.p', 'rb') as f:
+	# 	clf = pickle.load(f)
 
 	def predict(features):
-		pred = clf.predict(np.asarray([t._parse_features(features)],dtype=np.float32))[0]
-		if pred:
-			return features['mean_affinity']
+		return features['mean_affinity']
+		# return features['soft_label'] > 0.5
+		# pred = clf.predict(np.asarray([t._parse_features(features)],dtype=np.float32))[0]
+		if features['semantic_sum'] > 0.5:
+			pass
+			#We want this weight to be in the [0,1) range
 		else:
-			return 0.2
+			return 0.0
 
 
 		# return clf.predict(np.asarray([t._parse_features(features)],dtype=np.float32))[0][1]
@@ -28,7 +32,7 @@ def classifier(dataset_path):
 
 class Train(Task):
 	def __init__(self, sampler=None):
-		if 'semantic_sum' in Agglomeration.nodes_features:
+		if 'semantic_sum' in Agglomeration.nodes_features and False:
 			self.feature_names = ['mean_affinity','size_1','size_2','edge_size','semantic_sum']
 		else:	
 			self.feature_names = ['mean_affinity','size_1','size_2','edge_size']
@@ -38,58 +42,68 @@ class Train(Task):
 		self.all_examples = []
 
 	def fetch(self, store, queue):
+		valid_ids = set()
+		with h5py.File(store.dataset_path + '/sparse_human_labels.h5') as f:
+		  for seg_id , status in f['segment_status']:
+		    if status == 2:
+		      valid_ids.add(seg_id)
+
 		for file in tqdm(glob(store.dataset_path + '/triplets/*.p')):
 			logging.debug(file)
 			with open(file,'r') as f:
 				for example in pickle.load(f):
+					val_1 = len(set(example['tree_1'].t.get_all_leafs()).intersection(valid_ids)) >= 1
+					val_2 = len(set(example['tree_2'].t.get_all_leafs()).intersection(valid_ids)) >= 1
 					if 0.2 < example['soft_label'] and example['soft_label'] < 0.8:
 						continue
-					self.x.append(self._parse_features(example))
-					self.y.append(int(round(example['soft_label'])))
-					self.all_examples.append(example)
+					if val_1 or val_2:
+						self.x.append(self._parse_features(example))
+						self.y.append(int(round(example['soft_label'])))
+						self.all_examples.append(example)
 		self.model_path = store.dataset_path + '/model.p'
-
+		self.x = np.array(self.x)
+		self.y = np.array(self.y)
 	def _parse_features(self, features):
 		return [features[key] for key in self.feature_names]
 
 	def train_tree(self):
-		self.x = np.array(self.x)
-		self.y = np.array(self.y)
 		self.clf = tree.DecisionTreeClassifier(min_samples_split=len(self.x) / 4,criterion='entropy', class_weight='balanced')
-		# self.clf = RandomForestClassifier(min_samples_split=len(self.x) / 8, class_weight='balanced')
 		# with open(self.model_path, 'rb') as f:
 		# 	self.clf = pickle.load(f)
 
 		self.clf.fit(self.x, self.y)
 		self.pred = self.clf.predict(self.x)
 
+	def train_svm(self):
+		from sklearn import svm
+		self.clf = svm.SVC()
+		self.clf.fit(self.x, self.y)
+		self.pred = self.clf.predict(self.x)
+
+	def train_forest(self):
+		self.clf = RandomForestClassifier(min_samples_split=len(self.x) / 8, class_weight='balanced')
+	
 	def display_accuracy(self):
 		from sklearn.metrics import classification_report
 		print(classification_report(self.y, self.pred))
 		import itertools
 		self.colors = []
 		self.classes = []
-		self.x_pruned = []
 		for i in range(len(self.y)):
 			if self.y[i]:
 				if self.pred[i]:
-					pass
 					self.colors.append('green')
 					self.classes.append("tp")
 				else:
 					self.colors.append('darkolivegreen')
 					self.classes.append("fn")
-					self.x_pruned.append(self.x[i])
 			else:
 				if not self.pred[i]: #tn
-					pass
 					self.colors.append('red')
 					self.classes.append("tn")      
 				else:
-					self.x_pruned.append(self.x[i])
 					self.colors.append('tomato')        
 					self.classes.append("fp")
-		self.x_pruned = np.array(self.x_pruned)
 
 	def save_tree_png(self, store):
 		import pydot
@@ -107,8 +121,8 @@ class Train(Task):
 		for i, comb in enumerate(combinations):
 			logging.debug(comb)
 			plt.subplot(len(combinations),1,i+1)
-			plt.scatter(self.x_pruned[:,self.feature_names.index(comb[0])],
-						self.x_pruned[:,self.feature_names.index(comb[1])],
+			plt.scatter(self.x[:,self.feature_names.index(comb[0])],
+						self.x[:,self.feature_names.index(comb[1])],
 						c=self.colors,label=self.classes, s=5, edgecolor='')
 			plt.xlabel(comb[0])
 			plt.ylabel(comb[1])
@@ -134,7 +148,7 @@ class Train(Task):
  
 	def save(self, store, queue):
 		self.save_scatters_png(store)
-		self.save_tree_png(store)
+		# self.save_tree_png(store)
 		with open(store.dataset_path + '/model.p', 'wb') as f:
 			pickle.dump(self.clf, f)
 		

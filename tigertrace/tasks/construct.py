@@ -78,9 +78,9 @@ class Construct(Agglomeration):
     if 'aff_sum' in self.edge_features:
       self.aff = store.get_chunk((0,)+self.start, (3,)+self.end,'affinities')
     if 'soft_label' in self.nodes_features:
-      self.hl = store.get_chunk(self.start, self.end,'human_labels')
+      self.hl = store.get_chunk(self.start, self.end,'sparse_human_labels')
     if 'semantic_sum' in self.nodes_features:
-      self.sl = store.get_chunk((0,)+self.start, (5,)+self.end,'machine_semantic_labels')
+      self.sl = store.get_chunk((0,)+self.start, (5,)+self.end,'sparse_semantic_labels')
 
   def save_nodes_to_store(self, store, queue):
     for node_id, node in self.nodes.items():

@@ -3,6 +3,7 @@ import h5py
 import struct
 from six.moves import cPickle as pickle
 import numpy as np
+import os
 
 class Store(object):
   IMAGES_TABLE = 0
@@ -94,6 +95,8 @@ class Store(object):
   def log_operation(self, edge_src, edge_dst, operation):
     self.ops.append(operation)
     if len(self.ops) %1000 == 0:
+      if not os.path.exists('{}/triplets'.format(self.dataset_path)):
+        os.mkdir('{}/triplets'.format(self.dataset_path))
       with open('{}/triplets/{:06d}.p'.format(self.dataset_path,self.batch),'wb') as f:
         logging.debug('saving to disk')
         pickle.dump(self.ops,f)
@@ -128,9 +131,12 @@ class Store(object):
 
   def __del__(self):
     #save to disk if is a fraction of 1000
-    with open('{}/triplets/{:06d}.p'.format(self.dataset_path,self.batch),'wb') as f:
-        logging.debug('saving to disk')
-        pickle.dump(self.ops,f)
+    # if self.ops:
+    #   if not os.path.exists('{}/triplets'.format(self.dataset_path)):
+    #     os.mkdir('{}/triplets'.format(self.dataset_path))
+    #   with open('{}/triplets/{:06d}.p'.format(self.dataset_path,self.batch),'wb') as f:
+    #       logging.debug('saving to disk')
+    #       pickle.dump(self.ops,f)
 
     with open('{}/log.p'.format(self.dataset_path),'wb') as f:
       pickle.dump(self.log,f)

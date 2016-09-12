@@ -221,7 +221,9 @@ class TestColapseEdgeTask(unittest.TestCase):
         self.assertIsNone(self.store.get_edge(1,3))
 
         new_edge = self.store.get_edge(4,3) #4 is the id of the new node from merging 1 and 2
-        self.assertEqual(new_edge,{'aff_sum':1.0 , 'size':1, 'weight':1.0, 'tree':Tree(fromarray=[(3,4),(1,3),-1])})
+        self.assertEqual(new_edge,{'aff_sum':1.0 , 'size':1, 'weight':1.0, 
+                                   'tree':Tree(fromarray=[(3,4),(1,3),-1]),
+                                   'soft_label':1.0})
         self.assertEqual(self.store.get_node(4)['neighbors'],Neighbors([3]))
         self.assertEqual(self.store.get_node(4)['tree'],Tree(fromarray=[4,1,2]))
         self.assertEqual(self.store.get_node(3)['neighbors'],Neighbors([4]))
@@ -251,7 +253,9 @@ class TestColapseEdgeTask(unittest.TestCase):
         #Old components should have been deleted
         self.assertIsNone(self.store.get_edge(2,3))
         new_edge = self.store.get_edge(4,3) #4 is the id of the new node from merging 1 and 2
-        self.assertEqual(new_edge,{'aff_sum':1.0 , 'size':1, 'weight':1.0,'tree':Tree(fromarray=[(3,4),-1,(2,3)])})
+        self.assertEqual(new_edge,{'aff_sum':1.0 , 'size':1, 'weight':1.0,
+                                   'tree':Tree(fromarray=[(3,4),-1,(2,3)]),
+                                   'soft_label':1.0})
         self.assertEqual(self.store.get_node(4)['neighbors'],Neighbors([3]))
         self.assertEqual(self.store.get_node(4)['tree'],Tree(fromarray=[4,1,2]))
         self.assertEqual(self.store.get_node(3)['neighbors'],Neighbors([4]))
@@ -283,7 +287,11 @@ class TestColapseEdgeTask(unittest.TestCase):
         self.assertIsNone(self.store.get_edge(2,3))
         self.assertIsNone(self.store.get_edge(1,3))
         new_edge = self.store.get_edge(4,3) #4 is the id of the new node from merging 1 and 2
-        self.assertEqual(new_edge,{'aff_sum':2.0 , 'size':2.0, 'weight':1.0, 'tree':Tree(fromarray=[(3,4),(1,3),(2,3)])})
+        self.assertEqual(new_edge,{'aff_sum':2.0 , 
+                                   'size':2.0,
+                                   'weight':1.0,
+                                   'tree':Tree(fromarray=[(3,4),(1,3),(2,3)]),
+                                   'soft_label':1.0})
         self.assertEqual(self.store.get_node(4)['neighbors'],Neighbors([3]))
         self.assertEqual(self.store.get_node(4)['tree'],Tree(fromarray=[4,1,2]))
         self.assertEqual(self.store.get_node(3)['neighbors'],Neighbors([4]))

@@ -199,24 +199,24 @@ angular.module('cubeApp')
         return
       }
 
-      var color =  new THREE.Color(color);
-      if (!(segment_id in srv.cache)) {
-        get_mesh(segment_id, color,  function(mesh) {
-          if (mesh == null) {
-            return null;
-          }
+    //   var color =  new THREE.Color(color);
+    //   if (!(segment_id in srv.cache)) {
+    //     get_mesh(segment_id, color,  function(mesh) {
+    //       if (mesh == null) {
+    //         return null;
+    //       }
 
-          srv.cache[segment_id] = mesh;
-          srv.meshes.add(mesh);
-          callback(mesh);
-        });
-      } else {
-        //TODO resfresh cache time, once we have a real cache
-        var segment = srv.cache[segment_id]
-        srv.setSegmentColor(segment, color);
-        srv.meshes.add(segment);
-        callback(segment);
-      }
+    //       srv.cache[segment_id] = mesh;
+    //       srv.meshes.add(mesh);
+    //       callback(mesh);
+    //     });
+    //   } else {
+    //     //TODO resfresh cache time, once we have a real cache
+    //     var segment = srv.cache[segment_id]
+    //     srv.setSegmentColor(segment, color);
+    //     srv.meshes.add(segment);
+    //     callback(segment);
+    //   }
     }
 
     srv.setSegmentColor = function(segment , color) {

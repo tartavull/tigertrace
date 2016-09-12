@@ -95,6 +95,9 @@ class Tree(Feature):
     def __eq__(self, other):
         return self.t == other.t
 
+    def __repr__(self):
+        return self.t.__repr__()
+
 class Position(Feature):
 
     def __init__(self):

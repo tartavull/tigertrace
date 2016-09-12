@@ -7,6 +7,7 @@ sys.setrecursionlimit(10000)
 from .queues import LocalQueue
 from .workers import Worker
 from .stores.memory import MemoryStore
+from .classifiers import MeanOracle
 
 @click.command()
 @click.option('--path', prompt='Path to dataset',
@@ -15,6 +16,8 @@ from .stores.memory import MemoryStore
               help='What do you want me to do with the dataset?', type=click.Choice(['build', 'restore','train','infer']))
 
 
+@click.option('--classifier', prompt='How do we weight the edges?',
+              ,type=click.Choice(['Oracle', 'MeanOracle','Tree']))
 #tasks should be a mutiple options, such that we can execute many tasks together
 # Similarly to nargs, there is also the case of wanting to support a 
 #parameter being provided multiple times to and have all values recorded 
@@ -33,15 +36,13 @@ from .stores.memory import MemoryStore
 
 def main(path,task):
     """Console script for tigertrace"""
-    logging.debug(path)
-    logging.debug(task)
 
     #TODO think of better task division
     if task == 'build':
         queue = LocalQueue(path)
         queue.submit_new_task('Ingest')
         store = MemoryStore(path)
-        Worker(store, queue, just_build=True, oracle=True)
+        Worker(store, queue, MeanOracle, just_build=True, oracle=True)
     elif task == 'restore':
         queue = LocalQueue(path)
         queue.restore()
