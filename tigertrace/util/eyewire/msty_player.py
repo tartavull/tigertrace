@@ -10,11 +10,13 @@ import time
 
 import requests
 import networkx as nx
+import struct
 
 from msty_conf import conf
 from mysql import Mysql
 conn = Mysql()
 
+GOOGLE_STORAGE_URL = 'https://storage.googleapis.com/{}/{}segmentation.graph'
 def _submit_segment_api(segment, task_id):
   segments = ",".join(map(str,segment))
   requests.post('https://beta-tasking.eyewire.org/1.0/tasks/{}/submit?access_token={}'
@@ -25,8 +27,9 @@ def _get_tasks_to_play():
   tasks.id,
   tasks.segmentation_id,
   tasks.seeds, 
-  volumes.path
-from tasks, cells, cell_tags , volumes
+  volumes.path,
+  datasets.cloud_bucket
+from tasks, cells, cell_tags , volumes, datasets
 where
   cell_tags.tag = 'Agglomerator_AI'
   AND cell_tags.value > 0
@@ -34,8 +37,9 @@ where
   AND cells.dataset_id = 10
   AND cells.completed is null
   AND tasks.cell = cells.id
-  and tasks.status = 0
-  and tasks.segmentation_id = volumes.id
+  AND tasks.status = 0
+  AND tasks.segmentation_id = volumes.id
+  AND volumes.dataset = datasets.id
   AND (
     select count(1) 
     from validations 
@@ -45,8 +49,7 @@ where
 
   return tasks
 
-def _agglomerate(mst, seeds, threshold=0.35):
-  g = _create_nx_graph(mst)
+def _agglomerate(g, seeds, threshold=0.35):
   segment = set(seeds)
   visited = set(seeds)
   to_visit = seeds
@@ -65,20 +68,34 @@ def _agglomerate(mst, seeds, threshold=0.35):
         to_visit.append(neighbor)
   return segment
 
-def _create_nx_graph(mst):
+def _create_nx_graph_json(mst):
   g = nx.Graph()
   for u,v, weight in mst:
     g.add_edge(u,v,weight=weight)
   return g
 
+def _create_nx_graph_raw(mst_raw):
+  g = nx.Graph()
+  for offset in range(0, len(mst_raw), 8):
+    u, v, weight = struct.unpack('HHf', mst_raw[offset:offset+8])
+    g.add_edge(u,v,weight=weight)
+  return g
 
 if __name__ == '__main__':
 
   while (True):
-    for task_id, segmentation_id, seeds , path in _get_tasks_to_play():
+    for task_id, segmentation_id, seeds, path, cloud_bucket in _get_tasks_to_play():
       seeds = map(int,json.loads(seeds).keys())
-      r = requests.get('http://mst.eyewire.org/segmentation/{}'.format(segmentation_id))
-      segment = _agglomerate(r.json(), seeds)
+      if cloud_bucket:
+        mst_raw = requests.get(GOOGLE_STORAGE_URL.format(path,
+          cloud_bucket)).content
+        mst = _create_nx_graph_raw(mst_raw)
+      else:
+        r = requests.get('http://mst.eyewire.org/segmentation/{}'.format(segmentation_id))
+        mst = _create_nx_graph_json(r.json())
+
+      segment = _agglomerate(mst, seeds)
+
       _submit_segment_api(segment, task_id)
       time.sleep(1)
   time.sleep(10)
